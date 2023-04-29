@@ -1,0 +1,40 @@
+ORG 1000H
+MSJ DB "INGRESE UN NUMERO:"
+FIN DB ?
+ORG 1500H ;Direcciones de E/S
+NUM DB ?
+ORG 3000H
+ES_NUM: MOV BX, SP ;Obtengo el parametro pasado
+add BX, 2
+MOV bx, [BX] ;Ya que hice push de la direccion de num
+mov cx, [bx]
+
+;GUARDO ESTADO DE AX
+PUSH AX
+
+
+SUB CL, 30H 
+JS NOT_NUM ;Caso en que es menor a 30H
+CMP CL, 10 
+JNS NOT_NUM ;Caso en que es mayor a 30h
+MOV DL, 0FFH
+JMP FIN_SUB
+NOT_NUM: MOV DL, 00H
+
+FIN_SUB: POP AX
+;Recupero estado de ambos registros usados
+RET
+
+
+
+ORG 2000H
+MOV BX, OFFSET MSJ
+MOV AL, OFFSET FIN-OFFSET MSJ
+INT 7
+MOV BX, OFFSET NUM
+INT 6
+PUSH BX
+CALL ES_NUM
+
+INT 0
+END

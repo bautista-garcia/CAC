@@ -1,0 +1,64 @@
+PIC EQU 20H
+TIMER EQU 10H
+PIO EQU 30H
+pa EQU 30H
+pb EQU 31H
+ca EQU 32H
+cb EQU 33h
+N_CLK EQU 10
+ORG 40
+IP_CLK DW RUT_CLK
+ORG 1000H
+INICIO DB 0
+ORG 2000H 
+CLI 
+MOV AL, 0FDH 
+OUT pb, AL 
+MOV AL, N_CLK 
+OUT PIC+5, AL 
+MOV AL, 1 
+OUT TIMER+1, al
+MOV AL, 0 
+OUT PIO+3, al
+OUT PIO+1, al
+OUT TIMER, al
+STI 
+LAZO: JMP LAZO
+ORG 3000H
+rut_clk: nop
+inc inicio
+cmp inicio, 0ffh ;Todas las luces prendidas
+jnz prender
+mov inicio, 0 ;Apaga todas las luces si ya estan todas on
+prender: mov al, inicio
+out pb, al
+mov al, 0
+out timer, al
+mov al, 20h
+out pic, al
+iret
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

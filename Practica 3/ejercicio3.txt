@@ -1,0 +1,71 @@
+timer equ 10h
+pic equ 20h
+pa equ 30h
+pb equ 31h
+ca equ 32h
+cb equ 33h
+pos_clk equ 10
+org 40
+ip_clk dw rut_clk
+org 1000h
+leds db 0 
+org 2000h
+;Configuro pb como linea de salida
+mov al, 0
+out cb, al
+mov al, leds
+out pb, al ;Leds off
+
+;Configuro rutina de clock
+mov al, 0fdh
+out pic + 1, al
+mov al, pos_clk
+out pic + 5, al
+mov al, 1
+out timer + 1, al
+mov al, 0
+out timer, al
+
+lazo: jmp lazo
+int 0
+
+cli
+org 3000h
+rut_clk: push ax ;Guardo estado de al
+cmp leds, 0
+jnz pren
+inc leds
+mov al, leds
+jmp mostrar
+pren: mov al, leds
+add al, al ;Multiplico por dos para desplazar bit
+mov dl, 1 ;Llegue a max ahora tengo que dividir por dos
+mov leds, al
+mostrar: out pb, al
+mov al, 0
+out timer, al
+mov al, 20h
+out pic, al
+pop ax
+iret
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

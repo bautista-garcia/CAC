@@ -1,0 +1,35 @@
+;Constantes de direcciones
+PIC EQU 20H
+EOI EQU 20H
+;Este va a ser el indice en el vector de interrupciones del
+;Gestor de interrupciones para f10
+N_F10 EQU 10
+
+;Direcciones de vectores, en IP_F10 pongo el gestor de f10
+ORG 40
+IP_F10 DW RUT_F10
+ORG 2000H
+;cli para inhabilitar interrupciones
+CLI
+
+;Le pasa al IMR 11111110 para decirle que escuchara int0
+MOV AL, 0FEH
+OUT PIC+1, AL ; PIC: registro IMR
+
+;Le pasamos a INT0 la posicion del vector donde esta su 
+;gestor respectivo
+MOV AL, N_F10
+OUT PIC+4, AL ; PIC: registro INT0
+
+MOV DX, 0
+;sti para volver a habilitar interrupciones
+STI
+LAZO: JMP LAZO
+ORG 3000H
+RUT_F10: PUSH AX
+INC DX
+MOV AL, EOI
+OUT EOI, AL ; PIC: registro EOI
+POP AX
+IRET
+END

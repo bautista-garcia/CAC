@@ -1,0 +1,151 @@
+ORG 1000H
+;Cada palabra ocupa 6 bytes por lo que se hace mas facil la ejecucion en subrutina
+cero db "cero  "
+uno db "uno   "TIMER EQU 10H
+PIC EQU 20H
+EOI EQU 20H
+POS_F10 EQU 10
+POS_CLK EQU 11
+ORG 40
+IP_F10 DW RUT_F10
+ORG 44
+IP_CLK DW RUT_CLK
+ORG 1000H ;Memoria de datos
+segundos db ?
+MSJ DB "INGRESE UN NUMERO:"
+FIN DB ?
+SEG0 DB 30H
+SEG1 DB 30H
+FIN_SEG DB ?
+
+
+ORG 2000H ;Memoria de instrucciones
+;Leemos valor desde teclado
+mov bx, offset msj
+mov al, offset fin - offset msj
+int 7
+mov bx, offset segundos
+int 6
+;Configuramos Interrupciones: F10 y timer
+cli
+mov al, 0fch ;Dejo al timer y f10 en 0 en un paso
+out pic + 1, al
+mov al, pos_f10
+out pic + 4, al
+mov dl, 0 ;Dl indica si el bit esta encendido o no
+
+mov al, pos_clk
+out pic + 5, al
+mov al, 1
+out timer + 1, al
+mov al, 0
+out timer, al
+mov bx, offset seg0
+mov al, offset fin - offset seg0
+
+LAZO: JMP LAZO
+
+
+INT 0
+ORG 3000H
+RUT_F10:nop
+;Preservo estado de registros
+
+;Logica del f10
+cmp dl, 0
+jnz stop
+;Reloj en 0 por lo tanto lo inicio
+mov al, 1
+out timer + 1, al
+mov dl, 1
+jmp fin_f10
+stop: mov al, 0
+out timer + 1, al
+mov dl, 0
+fin_f10: mov al, eoi
+out pic, al
+IRET
+RUT_CLK: nop
+;Preservo estado de registros
+push ax
+;Logica del clock
+inc seg1
+cmp seg1, 3ah
+jnz reset
+mov seg1, 30h
+inc seg0
+cmp seg0, 36h
+jnz reset
+mov seg0, 30h
+reset: int 7
+mov al, 0
+out timer, al ;Volvemos a resetear cont
+mov al, eoi
+out pic, al
+pop ax
+IRET
+END
+
+
+dos db "dos   "
+tres db "tres  "
+cuatro db "cuatro"
+cinco db "cinco "
+seis db "seis  "
+siete db "siete "
+ocho db "ocho  "
+nueve db "nueve "
+
+MSJ DB "INGRESE UN NUMERO:"
+FIN DB ?
+ORG 1500H ;Direcciones de E/S
+NUM DB ?
+ORG 3000H
+MOSTRAR_LETRAS: MOV BX, SP ;Obtengo el parametro pasado
+add BX, 2
+MOV bx, [BX] ;Ya que hice push de la direccion de num
+mov cx, [bx]
+
+;GUARDO ESTADO DE AX
+PUSH AX
+PUSH DX
+
+;Proceso el dato
+mov bx, offset cero
+mov ch, 30h
+loop: cmp cl, ch
+jz imp_let
+add bx, 6 ;lo desplazo al proximo numero
+inc ch
+jmp loop
+jmp FIN_SUB
+
+imp_let: mov al, 6 ;Todas las palabras ocupan 6 bytes
+int 7
+
+
+
+FIN_SUB: POP DX 
+POP AX
+;Recupero estado de ambos registros usados
+RET
+
+
+
+ORG 2000H
+mov dl, 0; en dl se almacenan cant 0
+loop_principal: MOV BX, OFFSET MSJ
+MOV AL, OFFSET FIN-OFFSET MSJ
+INT 7
+MOV BX, OFFSET NUM
+INT 6
+cmp NUM, 30H
+jnz comparar
+inc dl
+comparar: cmp dl, 2
+jz fin_principal
+PUSH BX
+call mostrar_letras
+jmp loop_principal
+fin_principal: INT 0
+END

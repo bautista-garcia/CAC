@@ -1,0 +1,72 @@
+org 1000h
+MSJ DB "INGRESE UN NUMERO: "
+FIN DB ?
+org 1500h
+num1 db ?
+num2 db ?
+resultado db ?
+org 3000h
+suma:
+;Guardo estado de registros
+push ax
+push bx
+push cx
+push dx
+
+mov ch, num1
+mov ah, num2
+
+;Convierto numeros a decimal
+sub ch, 30h
+sub ah, 30h
+
+mov dh, ch
+add dh, ah
+
+
+mov al, 1 ;Los digitos siempre tendran longitud de 1 byte
+
+;Es de dos digitos?
+cmp dh, 10
+js menor
+mov resultado, 31h
+mov bx, offset resultado
+int 7
+sub dh, 10
+;La segunda parte de mayor es igual a menor:
+menor: add dh, 30h 
+mov resultado, dh
+mov bx, offset resultado
+int 7
+
+fin_sub: pop dx
+pop cx
+pop bx
+pop ax
+ret
+
+org 2000h
+MOV BX, OFFSET MSJ
+MOV AL, OFFSET FIN-OFFSET MSJ
+INT 7
+MOV BX, OFFSET num1
+INT 6
+
+MOV BX, OFFSET MSJ
+MOV AL, OFFSET FIN-OFFSET MSJ
+INT 7
+MOV BX, OFFSET num2
+INT 6
+
+mov ah, num1
+mov ch, num2
+
+call suma
+hlt
+
+
+
+end
+;Escribir un programa que efectúe la suma de dos números (de un dígito cada uno) ingresados por teclado y muestre el
+;resultado en la pantalla de comandos. Recordar que el código de cada caracter ingresado no coincide con el número que
+;representa y que el resultado puede necesitar ser expresado con 2 dígitos.

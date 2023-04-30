@@ -1,0 +1,64 @@
+pic equ 20h
+PIO EQU 30H
+pa equ 30h
+pb equ 31h
+ca equ 32h
+cb equ 33h
+pos_f10 equ 10
+org 40
+ip_f10 dw rut_f10
+ ORG 1000H
+caracteres db ?
+ ORG 2000H
+ mov dl, 5
+ mov bx, offset caracteres
+ ;Leemos caracteres
+ loop: nop
+ int 6
+ inc bx
+ dec dl
+ cmp dl,0
+ jnz loop
+  call config_imp
+ ;Configuramos f10
+ mov al, 0feh
+ out pic+1,al
+ mov al, pos_f10
+ out pic+4, al
+ mov bx, offset caracteres
+ mov dl, 5
+lazo: jmp lazo
+
+org 3000h
+config_imp: push ax
+mov al, 0fdh
+out ca, al
+mov al, 0
+out cb, al
+;Dejamos strobe en 0
+in al, pa
+and al, 0fdh 
+out pio, al
+pop ax
+ret
+pulso:push ax
+in al, pa
+or al, 2
+out pa, al
+in al, pio
+and al, 0fdh ;Deja strobe en 0
+out pa, al
+pop ax
+ret
+rut_f10:nop
+poll: in al,pa
+and al, 1
+jnz poll
+mov al, [bx]
+inc bx
+out pb, al
+call pulso
+dec dl
+jnz poll
+iret
+end

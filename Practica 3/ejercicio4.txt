@@ -1,0 +1,51 @@
+PIO EQU 30H
+pa equ 30h
+pb equ 31h
+ca equ 32h
+cb equ 33h
+ ORG 1000H
+MSJ DB "CONCEPTOS DE "
+ DB "ARQUITECTURA DE "
+ DB "COMPUTADORAS"
+FIN DB ?
+ ORG 2000H
+ nop
+ ;Linea de strobe sera de salida(pulsos de salida)
+ MOV AL, 0FDH 
+ OUT ca, AL 
+ ;Puerto PB todo de salida
+ MOV AL, 0
+ OUT cb, AL ;CB en 0, PB linea de salida
+ 
+ ;Deja linea STROBE en 0 y las demas las deja como estaban
+ IN AL, PIO 
+ AND AL, 0FDH 
+ OUT PIO, AL ; FIN INICIALIZACION
+ 
+ MOV BX, OFFSET MSJ
+ MOV CL, OFFSET FIN-OFFSET MSJ
+POLL: NOP 
+ ;Comparamos con PA0(linea BUSY), hasta que no este busy
+ IN AL, PA
+ AND AL, 1 
+ JNZ POLL 
+
+ ;Manda a PB(linea de salida) primer byte de MSJ
+ MOV AL, [BX] 
+ OUT PIO+1, AL 
+
+ ;Mandamos pulso STROBE, avisamos que dejamos dato
+ IN AL, PIO 
+ OR AL, 02H 
+ OUT PIO, AL 
+
+ ;Volvemos a setear STROBE en 0, fin pulso
+ IN AL, PIO
+ AND AL, 0FDH
+ OUT PIO, AL 
+ ;Pasamos al siguiente byte
+ INC BX
+ DEC CL
+ JNZ POLL
+ INT 0
+ END

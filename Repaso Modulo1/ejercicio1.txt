@@ -1,0 +1,55 @@
+pio equ 30h
+org 1000h
+cadena db "abeCdArIo"
+fin db ?
+org 3000h
+seleccionado: push bx
+mov bx, [bx]
+sub bl, 41h
+js falso
+cmp bl, 25
+jns falso
+mov dl, 1
+jmp fin_sub
+falso: mov dl, 0
+fin_sub: pop bx
+ret
+pulso: push ax
+in al, pio
+or al, 2
+out pio, al
+in al, pio
+and al, 11111101b
+out pio, al
+pop ax
+ret
+config_imp: push ax
+mov al, 0
+out pio, al
+in al, pio+2
+and al, 11111101b
+out pio+2, al
+in al, pio
+and al, 11111101b
+out pio, al
+pop ax
+ret
+org 2000h
+call config_imp
+mov bx, offset cadena
+mov cl, offset fin - offset cadena
+loop_cadena: call seleccionado
+cmp dl, 1
+jnz sig
+poll: in al, pio
+and al, 1
+jnz poll
+mov al, [bx]
+out pio+1,al
+call pulso
+sig: inc bx
+dec cl
+jnz loop_cadena
+int 0
+
+end

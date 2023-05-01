@@ -1,0 +1,78 @@
+pic equ 20h
+imr equ 21h
+int0 equ 24h
+int1 equ 25h
+pos_clk equ 10
+pos_f10 equ 11
+timer equ 10h
+org 40
+ip_clk dw rut_clk
+org 44
+ip_f10 dw rut_f10
+org 1000h
+seg1 db 30h
+seg0 db 30h
+fin db ?
+
+org 2000h
+;Configuro f10 y parte del timer
+cli
+;F10
+mov al, 11111110b ;El clock lo activo desde f10
+out imr, al
+mov al, pos_f10
+out int0, al
+
+;TIMER
+mov al, pos_clk
+out int1, al
+mov al, 1
+out TIMER + 1, al
+mov al, 0
+out TIMER, al
+mov bx, offset seg1
+mov al, offset fin - offset seg1
+sti
+lazo: cmp seg1, 33h
+jnz lazo
+int 0
+
+org 3000h
+rut_clk: nop
+INC SEG0
+CMP SEG0, 3AH ;Compara con ":" que es el proximo a "9"
+JNZ RESET
+MOV SEG0, 30H
+INC SEG1
+CMP SEG1, 36H ;compara con "6" para que no se pase de 60
+JNZ RESET
+MOV SEG1, 30H
+RESET: mov al, offset fin - offset seg1 
+INT 7
+MOV AL, 0
+OUT TIMER, AL
+MOV AL, 20h
+OUT PIC, AL
+IRET
+
+rut_f10: push ax
+;Debo invertir bit1 (TIMER) del IMR.
+in al, imr
+xor al, 2
+out imr, al
+mov al, 20h
+out pic, al
+pop ax
+iret
+end
+
+
+
+
+
+
+
+
+
+
+

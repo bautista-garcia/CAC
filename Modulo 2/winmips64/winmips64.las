@@ -1,1 +1,1 @@
-C:\universidad\CAC\Modulo 2\winmips64\practica6\e3.s
+C:\universidad\CAC\Modulo 2\winmips64\practica6\e4.s

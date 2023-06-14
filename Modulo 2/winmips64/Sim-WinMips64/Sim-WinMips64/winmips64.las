@@ -1,0 +1,1 @@
+C:\universidad\CAC\Modulo 2\winmips64\practica6\e5.s
